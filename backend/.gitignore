@@ -1,3 +1,12 @@
 node_modules/
 .env
 .DS_Store
+
+
+# Private key (never commit this)
+private.pem
+
+# Optional: ignore all keys except public.pem
+keys/private.pem
+keys/*.pem
+!keys/public.pem

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppError } from '../utils/appError';
+import config from '../config/config';
 
 export const globalErrorHandler = (
   err: Error | AppError,
@@ -7,7 +8,7 @@ export const globalErrorHandler = (
   res: Response,
   next: NextFunction
 ) => {
-  const isProd = process.env.NODE_ENV === 'production';
+  const isProd = config.nodeEnv === 'production';
 
   const statusCode = (err instanceof AppError && err.statusCode) || 500;
   const message = err.message || 'Something went wrong';

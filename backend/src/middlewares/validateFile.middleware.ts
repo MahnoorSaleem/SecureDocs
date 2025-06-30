@@ -1,0 +1,46 @@
+import { Request, Response, NextFunction } from 'express';
+import { AppError } from '../utils/appError';
+
+export const validateSingleFile = (allowedMimeTypes: string[], maxSizeMB = 10) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const file = req.file;
+    if (!file) {
+      return next(new AppError('File is required', 400));
+    }
+
+    if (!allowedMimeTypes.includes(file.mimetype)) {
+      return next(new AppError(`Invalid file type: ${file.mimetype}`, 400));
+    }
+
+    const sizeMB = file.size / (1024 * 1024);
+    if (sizeMB > maxSizeMB) {
+      return next(new AppError(`File size exceeds ${maxSizeMB} MB`, 400));
+    }
+
+    next();
+  };
+};
+
+export const validateMultipleFiles = (allowedMimeTypes: string[], maxSizeMB = 10) => {
+    return (req: Request, res: Response, next: NextFunction) => {
+      const files = req.files as Express.Multer.File[];
+  
+      if (!files || files.length === 0) {
+        return next(new AppError('At least one file is required', 400));
+      }
+  
+      for (const file of files) {
+        if (!allowedMimeTypes.includes(file.mimetype)) {
+          return next(new AppError(`Invalid file type: ${file.originalname}`, 400));
+        }
+  
+        const sizeMB = file.size / (1024 * 1024);
+        if (sizeMB > maxSizeMB) {
+          return next(new AppError(`${file.originalname} exceeds ${maxSizeMB} MB`, 400));
+        }
+      }
+  
+      next();
+    };
+  };
+  
