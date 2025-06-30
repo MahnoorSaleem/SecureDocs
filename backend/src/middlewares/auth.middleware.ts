@@ -23,7 +23,6 @@ export const isAuth = (req: AuthRequest, res: Response, next: NextFunction): voi
 
   try {
     const payload = jwt.verify(token, config.JWT_SECRET!) as AuthPayload;
-    console.info(payload);
     req.user = { id: payload.id };
     next();
   } catch (err) {
