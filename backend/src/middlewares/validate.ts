@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import Joi from 'joi';
+import Joi, { ObjectSchema } from 'joi';
 import { AppError } from '../utils/appError';
 
 export const validate =
@@ -13,3 +13,15 @@ export const validate =
     }
     next();
   };
+
+
+  export const validateParams = (schema: ObjectSchema) => {
+    return (req: Request, res: Response, next: NextFunction) => {
+      const { error } = schema.validate(req.params);
+      if (error) {
+        return next(new AppError(error.details[0].message, 400));
+      }
+      next();
+    };
+  };
+  
