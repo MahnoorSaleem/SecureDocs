@@ -6,6 +6,7 @@ import { AppError } from '../utils/appError';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { sendResponse } from '../utils/sendReponse';
 import config from '../config/config';
+import { SERVER_PUBLIC_KEY } from '../utils/rsaKeys';
 
 export const uploadSingle = async (req: AuthRequest, res: Response): Promise<void> => {
   const file = req.file;
@@ -22,7 +23,7 @@ export const uploadSingle = async (req: AuthRequest, res: Response): Promise<voi
 
   const encryptedAESKey = encryption.encryptAESKeyWithRSA(
     aesKey,
-    config.SERVER_PUBLIC_KEY!,
+    SERVER_PUBLIC_KEY!,
   );
 
   const doc = await Document.create({
@@ -88,7 +89,7 @@ export const uploadMultiple = async (req: AuthRequest, res: Response) => {
   
       const encryptedAESKey = encryption.encryptAESKeyWithRSA(
         aesKey,
-        config.SERVER_PUBLIC_KEY!
+        SERVER_PUBLIC_KEY!
       );
   
       const doc = await Document.create({
