@@ -2,12 +2,12 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const requireEnv = (key: string): string => {
-    const value = process.env[key];
-    if (!value) {
-      throw new Error(`Missing required environment variable: ${key}`);
-    }
-    return value;
+  const value = process.env[key];
+  if (!value) {
+    throw new Error(`Missing required environment variable: ${key}`);
   }
+  return value;
+};
 
 interface Config {
   port: number;
@@ -20,8 +20,12 @@ interface Config {
   AWS_ACCESS_KEY_ID: string;
   AWS_SECRET_ACCESS_KEY: string;
   S3_BUCKET: string;
+  REDIS_HOST: string;
+  REDIS_PORT: number;
+  REDIS_PASSWORD: string;
+  MAX_REQUESTS: number;
+  RATE_LIMIT_WINDOW: number;
 }
-
 
 const config: Config = {
   port: parseInt(requireEnv('PORT'), 10),
@@ -34,11 +38,16 @@ const config: Config = {
   AWS_ACCESS_KEY_ID: requireEnv('AWS_ACCESS_KEY_ID'),
   AWS_SECRET_ACCESS_KEY: requireEnv('AWS_SECRET_ACCESS_KEY'),
   S3_BUCKET: requireEnv('S3_BUCKET'),
+  REDIS_HOST: requireEnv('REDIS_HOST'),
+  REDIS_PORT: parseInt(requireEnv('REDIS_PORT'), 10),
+  REDIS_PASSWORD: requireEnv('REDIS_PASSWORD'),
+  MAX_REQUESTS: parseInt(requireEnv('MAX_REQUESTS'), 10),
+  RATE_LIMIT_WINDOW: parseInt(requireEnv('RATE_LIMIT_WINDOW'), 10),
 };
 
 export const corsOrigin =
   config.nodeEnv === 'production'
-  ? process.env.CORS_ORIGIN_PROD || 'https://your-prod-domain.com'
-  : process.env.CORS_ORIGIN_DEV || 'http://localhost:3001';
+    ? process.env.CORS_ORIGIN_PROD || 'https://your-prod-domain.com'
+    : process.env.CORS_ORIGIN_DEV || 'http://localhost:3001';
 
 export default config;

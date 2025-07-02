@@ -1,11 +1,10 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import * as encryption from '../utils/encryption';
 import * as s3Service from '../services/s3.service';
 import Document from '../models/document';
 import { AppError } from '../utils/appError';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { sendResponse } from '../utils/sendReponse';
-import config from '../config/config';
 import { SERVER_PUBLIC_KEY } from '../utils/rsaKeys';
 
 export const uploadSingle = async (req: AuthRequest, res: Response): Promise<void> => {
