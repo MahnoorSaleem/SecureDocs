@@ -6,10 +6,12 @@ import documentRoutes from './routes/document.routes';
 import { globalErrorHandler } from './middlewares/error.middleware';
 import config, {corsOrigin as allowedOrigin} from './config/config';
 import { customRateLimiter } from './middlewares/rateLimiter';
+import helmet from 'helmet';
 
 const app = express();
 
 app.use(express.json());
+app.use(helmet());
 
 if (config.nodeEnv === 'production') {
   app.use(
