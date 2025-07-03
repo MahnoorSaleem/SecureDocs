@@ -25,6 +25,7 @@ interface Config {
   REDIS_PASSWORD: string;
   MAX_REQUESTS: number;
   RATE_LIMIT_WINDOW: number;
+  JWT_REFRESH_TOKEN_EXPIRY: number;
 }
 
 const config: Config = {
@@ -43,6 +44,7 @@ const config: Config = {
   REDIS_PASSWORD: requireEnv('REDIS_PASSWORD'),
   MAX_REQUESTS: parseInt(requireEnv('MAX_REQUESTS'), 10),
   RATE_LIMIT_WINDOW: parseInt(requireEnv('RATE_LIMIT_WINDOW'), 10),
+  JWT_REFRESH_TOKEN_EXPIRY: parseInt(requireEnv('JWT_REFRESH_TOKEN_EXPIRY'), 10),
 };
 
 export const corsOrigin =
