@@ -12,8 +12,7 @@ export const customRateLimiter = async (
   next: NextFunction,
 ) => {
   try {
-    const ip = req.ip; // or req.headers['x-forwarded-for'] for proxies
-    console.info('>>> ip', req.ip);
+    const ip = req.ip;
     const redisKey = `rate-limit:${ip}`;
 
     const requestCount = await redis.incr(redisKey);
