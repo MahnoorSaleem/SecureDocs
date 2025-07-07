@@ -3,6 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { AppError } from '../utils/appError';
 import config from '../config/config';
+import logger from '../utils/logger';
 
 interface AuthPayload {
   id: string;
@@ -16,6 +17,11 @@ export const isAuth = (req: AuthRequest, res: Response, next: NextFunction): voi
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    logger.warn('Unauthorized access attempt: Missing token', {
+      ip: req.ip,
+      path: req.originalUrl,
+      method: req.method,
+    });
     throw new AppError('Unauthorized: Token missing', 401);
   }
 
@@ -24,8 +30,20 @@ export const isAuth = (req: AuthRequest, res: Response, next: NextFunction): voi
   try {
     const payload = jwt.verify(token, config.JWT_SECRET!) as AuthPayload;
     req.user = { id: payload.id };
+    logger.info('User authenticated successfully', {
+      userId: payload.id,
+      path: req.originalUrl,
+      method: req.method,
+      token
+    });
     next();
   } catch (err) {
+    logger.warn('Unauthorized access attempt: Invalid or expired token', {
+      error: (err as Error).message,
+      ip: req.ip,
+      path: req.originalUrl,
+      method: req.method,
+    });
     throw new AppError('Unauthorized: Invalid or expired token', 401);
   }
 };

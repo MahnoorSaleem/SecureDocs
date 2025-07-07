@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+
 dotenv.config();
 
 const requireEnv = (key: string): string => {
@@ -44,12 +45,15 @@ const config: Config = {
   REDIS_PASSWORD: requireEnv('REDIS_PASSWORD'),
   MAX_REQUESTS: parseInt(requireEnv('MAX_REQUESTS'), 10),
   RATE_LIMIT_WINDOW: parseInt(requireEnv('RATE_LIMIT_WINDOW'), 10),
-  JWT_REFRESH_TOKEN_EXPIRY: parseInt(requireEnv('JWT_REFRESH_TOKEN_EXPIRY'), 10),
+  JWT_REFRESH_TOKEN_EXPIRY: parseInt(
+    requireEnv('JWT_REFRESH_TOKEN_EXPIRY'),
+    10,
+  ),
 };
 
 export const corsOrigin =
   config.nodeEnv === 'production'
-    ? process.env.CORS_ORIGIN_PROD || 'https://your-prod-domain.com'
-    : process.env.CORS_ORIGIN_DEV || 'http://localhost:3001';
+    ? requireEnv('CORS_ORIGIN_PROD')
+    : requireEnv('CORS_ORIGIN_DEV');
 
 export default config;
