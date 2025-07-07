@@ -2,6 +2,7 @@ import config from '../config/config';
 import redis from '../config/redis';
 import User, { IUser } from '../models/user';
 import * as jwtUtils from '../utils/jwt';
+import logger from '../utils/logger';
 
 export const registerUser = async (username: string, email: string, password: string): Promise<IUser> => {
   const existing = await User.findOne({ email });
@@ -14,6 +15,10 @@ export const registerUser = async (username: string, email: string, password: st
 export const loginUser = async (email: string, password: string) => {
   const user = await User.findOne({ email });
   if (!user || !(await user.isValidPassword(password))) {
+    logger.error('Invalid email or password', {
+      email,
+      userId: user?._id
+    })
     throw new Error('Invalid email or password');
   }
 
@@ -26,6 +31,8 @@ export const loginUser = async (email: string, password: string) => {
     'EX',
     config.JWT_REFRESH_TOKEN_EXPIRY
   );
+
+  logger.info('user login', { accessToken, refreshToken, user: { id: user._id, email: user.email }})
 
   return { accessToken, refreshToken, user: { id: user._id, email: user.email } };
 };
