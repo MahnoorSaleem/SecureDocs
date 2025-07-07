@@ -9,7 +9,6 @@ import { AuthRequest } from '../middlewares/auth.middleware';
 
 export const register = async (req: Request, res: Response) => {
   const { username, email, password } = req.body;
-  try {
     const user = await authService.registerUser(username, email, password);
     sendResponse({
       res,
@@ -17,27 +16,20 @@ export const register = async (req: Request, res: Response) => {
       message: 'User registered successfully',
       data: user,
     });
-  } catch (err: any) {
-    throw new AppError(err.message, 400);
-  }
+  
 };
 
 export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
-  try {
     const tokens = await authService.loginUser(email, password);
     sendResponse({
         res,
         message: 'Login successful',
         data: tokens,
       });
-  } catch (err: any) {
-    throw new AppError(err.message, 401);
-  }
 };
 
 export const refreshToken = async (req: Request, res: Response) => {
-  try {
     const { refreshToken } = req.body;
     if (!refreshToken) {
       throw new AppError('Refresh token is required', 401);
@@ -72,24 +64,16 @@ export const refreshToken = async (req: Request, res: Response) => {
       data: tokens
       
     });
-  } catch (err: any) {
-    throw new AppError(err?.message, 401);
-  }
 };
 
 
 export const logout = async (req: AuthRequest, res: Response, next: NextFunction) => {
-  try {
     const userId = req.user?.id;
     if (!userId) {
       return next(new AppError('Unauthorized', 401));
     }
     await redis.del(`refresh:${userId}`);
     sendResponse({res,  message: 'Logged out successfully' });
-  } catch (err: any) {
-    throw new AppError(err?.message, 401);
-  }
- 
 };
 
 
