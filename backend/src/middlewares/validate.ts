@@ -11,6 +11,7 @@ export const validate =
     if (error) {
       const messages = error.details.map((d) => d.message).join(', ');
       logger.warn('Validation failed', {
+        requestId: req.id,
         ip: req.ip,
         path: req.originalUrl,
         method: req.method,
@@ -27,6 +28,7 @@ export const validate =
       const { error } = schema.validate(req.params);
       if (error) {
         logger.warn('Route param validation failed', {
+          requestId: req.id,
           ip: req.ip,
           path: req.originalUrl,
           method: req.method,

@@ -10,6 +10,7 @@ export const validateSingleFile = (
     const file = req.file;
     if (!file) {
       logger.warn('File is required', {
+        requestId: req.id,
         file,
         path: req.originalUrl,
         method: req.method,
@@ -19,6 +20,7 @@ export const validateSingleFile = (
 
     if (!allowedMimeTypes.includes(file.mimetype)) {
       logger.warn('Invalid file type', {
+        requestId: req.id,
         file,
         path: req.originalUrl,
         method: req.method,
@@ -30,6 +32,7 @@ export const validateSingleFile = (
     const sizeMB = file.size / (1024 * 1024);
     if (sizeMB > maxSizeMB) {
       logger.warn(`File size exceeds ${maxSizeMB} MB`, {
+        requestId: req.id,
         file,
         path: req.originalUrl,
         method: req.method,
@@ -53,6 +56,7 @@ export const validateMultipleFiles = (
 
     if (!files || files.length === 0) {
       logger.warn('At least one file is required', {
+        requestId: req.id,
         files,
         path: req.originalUrl,
         method: req.method,
@@ -64,6 +68,7 @@ export const validateMultipleFiles = (
     for (const file of files) {
       if (!allowedMimeTypes.includes(file.mimetype)) {
         logger.warn('Invalid file type', {
+          requestId: req.id,
           file,
           path: req.originalUrl,
           method: req.method,
@@ -77,6 +82,7 @@ export const validateMultipleFiles = (
       const sizeMB = file.size / (1024 * 1024);
       if (sizeMB > maxSizeMB) {
         logger.warn(`${file.originalname} exceeds ${maxSizeMB} MB`, {
+          requestId: req.id,
           file,
           path: req.originalUrl,
           method: req.method,

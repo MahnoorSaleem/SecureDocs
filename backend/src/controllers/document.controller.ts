@@ -16,6 +16,7 @@ export const uploadSingle = async (
   const userId = req?.user!.id;
   if (!file) {
     logger.warn('No file uploaded', {
+      requestId: req.id,
       ip: req.ip,
       path: req.originalUrl,
       method: req.method,
@@ -46,6 +47,7 @@ export const uploadSingle = async (
   });
 
   logger.info('Document uploaded successfully', {
+    requestId: req.id,
     userId: req.user?.id,
     documentId: doc._id,
     ownerId: userId,
@@ -69,6 +71,7 @@ export const getDownloadUrl = async (
   const doc = await Document.findById(req.params.id);
   if (!doc || doc.ownerId.toString() !== req.user!.id) {
     logger.error('Document not found', {
+      requestId: req.id,
       url: req.originalUrl,
       method: req.method,
       userId: req.user?.id,
@@ -83,6 +86,7 @@ export const getDownloadUrl = async (
 
   const url = s3Service.getPresignedUrl(doc.s3Key);
   logger.info('Download URL', {
+    requestId: req.id,
     url: req.originalUrl,
     method: req.method,
     userId: req.user?.id,
@@ -102,6 +106,7 @@ export const deleteFile = async (
   const doc = await Document.findById(req.params.id);
   if (!doc || doc.ownerId.toString() !== req.user!.id) {
     logger.warn('Document not found', {
+      requestId: req.id,
       url: req.originalUrl,
       method: req.method,
       userId: req.user?.id,
@@ -113,6 +118,7 @@ export const deleteFile = async (
   await s3Service.deleteFromS3(doc.s3Key);
   await doc.deleteOne();
   logger.info('File Deleted', {
+    requestId: req.id,
     url: req.originalUrl,
     method: req.method,
     userId: req.user?.id,
@@ -130,6 +136,7 @@ export const uploadMultiple = async (req: AuthRequest, res: Response) => {
 
   if (!files || files.length === 0) {
     logger.warn('No files uploaded', {
+      requestId: req.id,
       url: req.originalUrl,
       method: req.method,
       userId: req.user?.id,
@@ -167,6 +174,7 @@ export const uploadMultiple = async (req: AuthRequest, res: Response) => {
     });
   }
   logger.info('Files uploaded successfully', {
+    requestId: req.id,
     url: req.originalUrl,
     method: req.method,
     userId: req.user?.id,

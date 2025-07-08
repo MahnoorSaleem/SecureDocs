@@ -18,6 +18,7 @@ export const globalErrorHandler = (
   // Log internal error details (for dev or logs)
   console.error('ERROR 💥', err);
   logger.error('Unhandled Error', {
+    requestId: req.id,
     message: err.message,
     stack: err.stack,
     method: req.method,

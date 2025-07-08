@@ -16,11 +16,12 @@ export const customRateLimiter = async (
     const ip = req.ip;
     const redisKey = `rate-limit:${ip}`;
     logger.info('redis key', {
-        redisKey: `rate-limit:${ip}`,
-        ip,
-        path: req.originalUrl,
-        method: req.method,
-    })
+      requestId: req.id,
+      redisKey: `rate-limit:${ip}`,
+      ip,
+      path: req.originalUrl,
+      method: req.method,
+    });
     const requestCount = await redis.incr(redisKey);
     if (requestCount === 1) {
       await redis.expire(redisKey, RATE_LIMIT_WINDOW);
@@ -28,6 +29,7 @@ export const customRateLimiter = async (
 
     if (requestCount > MAX_REQUESTS) {
       logger.warn('Rate limit exceeded', {
+        requestId: req.id,
         ip,
         path: req.originalUrl,
         method: req.method,
@@ -44,6 +46,7 @@ export const customRateLimiter = async (
     next();
   } catch (error) {
     logger.error('Rate limiter middleware error', {
+      requestId: req.id,
       message: (error as Error).message,
       stack: (error as Error).stack,
       ip: req.ip,

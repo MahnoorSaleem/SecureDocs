@@ -18,6 +18,7 @@ export const isAuth = (req: AuthRequest, res: Response, next: NextFunction): voi
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     logger.warn('Unauthorized access attempt: Missing token', {
+      requestId: req.id,
       ip: req.ip,
       path: req.originalUrl,
       method: req.method,
@@ -31,6 +32,7 @@ export const isAuth = (req: AuthRequest, res: Response, next: NextFunction): voi
     const payload = jwt.verify(token, config.JWT_SECRET!) as AuthPayload;
     req.user = { id: payload.id };
     logger.info('User authenticated successfully', {
+      requestId: req.id,
       userId: payload.id,
       path: req.originalUrl,
       method: req.method,
@@ -39,6 +41,7 @@ export const isAuth = (req: AuthRequest, res: Response, next: NextFunction): voi
     next();
   } catch (err) {
     logger.warn('Unauthorized access attempt: Invalid or expired token', {
+      requestId: req.id,
       error: (err as Error).message,
       ip: req.ip,
       path: req.originalUrl,
