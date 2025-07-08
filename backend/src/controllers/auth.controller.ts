@@ -15,13 +15,30 @@ export const register = async (req: Request, res: Response) => {
   const { username, email, password } = req.body;
 
   logWithContext('info', 'register request', context, {
-    requestBody: {username, email},
+    request: {
+      body: { username, email },
+    },
+    response: {
+      message: 'register request',
+    },
   });
 
-  const user = await authService.registerUser(username, email, password, context);
+  const user = await authService.registerUser(
+    username,
+    email,
+    password,
+    context,
+  );
 
   logWithContext('info', 'User registered successfully', context, {
-    responseBody: user,
+    request: {
+      body: { username, email },
+    },
+    response: {
+      statusCode: 201,
+      message: 'User registered successfull',
+      user,
+    },
   });
 
   sendResponse({
@@ -38,10 +55,27 @@ export const login = async (req: Request, res: Response) => {
   const context = { ...req.logContext, apiName: '/login' };
 
   logWithContext('info', 'Login request received', context, {
-    requestBody: { email: req.body.email },
+    request: {
+      params: req.params,
+      body: { email },
+    },
+    response: {
+      message: 'Login request received',
+    },
   });
 
   const tokens = await authService.loginUser(email, password, context);
+  logWithContext('info', 'Login successful', context, {
+    request: {
+      params: req.params,
+      body: { email },
+    },
+    response: {
+      statusCode: 200,
+      message: 'Login request received',
+      tokens,
+    },
+  });
   sendResponse({
     res,
     message: 'Login successful',
@@ -54,7 +88,15 @@ export const refreshToken = async (req: AuthRequest, res: Response) => {
   const { refreshToken } = req.body;
   if (!refreshToken) {
     logWithContext('error', 'Refresh token is required', context, {
-      requestBody: { refreshToken },
+      request: {
+        userId: req.user?.id,
+        params: req.params,
+        body: req.body,
+      },
+      response: {
+        statusCode: 401,
+        message: 'Refresh token is required',
+      },
     });
     throw new AppError('Refresh token is required', 401);
   }
@@ -67,7 +109,15 @@ export const refreshToken = async (req: AuthRequest, res: Response) => {
   const storedToken = await redis.get(`refresh:${userId}`);
   if (!storedToken || storedToken !== refreshToken) {
     logWithContext('error', 'Invalid or reused refresh token', context, {
-      requestBody: { refreshToken,  userId: req.user?.id, },
+      request: {
+        userId: req.user?.id,
+        params: req.params,
+        body: req.body,
+      },
+      response: {
+        statusCode: 403,
+        message: 'Invalid or reused refresh token',
+      },
     });
     throw new AppError('Invalid or reused refresh token', 403);
   }
@@ -86,12 +136,20 @@ export const refreshToken = async (req: AuthRequest, res: Response) => {
   const tokens = { accessToken: newAccessToken, refreshToken: newRefreshToken };
   logger.info('Invalid or reused refresh token', {
     ...context,
-    userId: req.user?.id,
-    responseBody: tokens,
+    request: {
+      userId: req.user?.id,
+      params: req.params,
+      body: req.body,
+    },
+    response: {
+      statusCode: 200,
+      message: 'Tokens Updated',
+      tokens,
+    },
   });
   sendResponse({
     res,
-    message: 'Toekns Updated',
+    message: 'Tokens Updated',
     data: tokens,
   });
 };
@@ -103,19 +161,40 @@ export const logout = async (
 ) => {
   const userId = req.user?.id;
   const context = { ...req.logContext, apiName: '/logout' };
-    logWithContext('info', 'logout request', context, {
-      userId,
-    });
+  logWithContext('info', 'logout request', context, {
+    request: {
+      userId: req.user?.id,
+    },
+    response: {
+      message: 'logout request',
+    },
+  });
 
   if (!userId) {
     logWithContext('warn', 'Unauthorized', context, {
-      userId,
+      request: {
+        userId: req.user?.id,
+        params: req.params,
+        body: req.body,
+      },
+      response: {
+        statusCode: 401,
+        message: 'Unauthorized',
+      },
     });
     return next(new AppError('Unauthorized', 401));
   }
   await redis.del(`refresh:${userId}`);
   logWithContext('info', 'Logged out successfully', context, {
-    userId,
+    request: {
+      userId: req.user?.id,
+      params: req.params,
+      body: req.body,
+    },
+    response: {
+      statusCode: 200,
+      message: 'Logged out successfully',
+    },
   });
   sendResponse({ res, message: 'Logged out successfully' });
 };

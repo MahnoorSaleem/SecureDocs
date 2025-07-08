@@ -6,7 +6,6 @@ import { AppError } from '../utils/appError';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { sendResponse } from '../utils/sendReponse';
 import { SERVER_PUBLIC_KEY } from '../utils/rsaKeys';
-import logger from '../utils/logger';
 import { logWithContext } from '../utils/contextualLogger';
 
 export const uploadSingle = async (
@@ -14,13 +13,23 @@ export const uploadSingle = async (
   res: Response,
 ): Promise<void> => {
   const context = { ...req.logContext, apiName: '/upload' };
-
   const file = req.file;
   const userId = req?.user!.id;
   if (!file) {
-    logWithContext('warn', 'No file uploaded', context, {
+    logWithContext('error', 'No file uploaded', context, {
       ip: req.ip,
       requestBody: { userId, file },
+      request: {
+        ip: req.ip,
+        userId: req.user?.id,
+        params: req.params,
+        body: req.body,
+      },
+      response: {
+        statusCode: 400,
+        message: 'No file uploaded',
+        file
+      }
     });
     throw new AppError('No file uploaded', 400);
   }
@@ -45,14 +54,20 @@ export const uploadSingle = async (
     encryptedAESKey,
   });
   logWithContext('info', 'Document uploaded successfully', context, {
-    ip: req.ip,
-    responseBody: {
+    request: {
+      ip: req.ip,
       userId: req.user?.id,
-      documentId: doc._id,
+      params: req.params,
+      body: req.body,
+    },
+    response: {
+      statusCode: 201,
+      message: 'Document uploaded successfully',
+      data:  {documentId: doc._id,
       ownerId: userId,
       fileName: file.originalname,
       fileSize: file.size,
-      mimeType: file.mimetype,
+      mimeType: file.mimetype}
     },
   });
   sendResponse({
@@ -71,30 +86,34 @@ export const getDownloadUrl = async (
 
   const doc = await Document.findById(req.params.id);
   if (!doc || doc.ownerId.toString() !== req.user!.id) {
-    logger.error('Document not found', {
-      requestId: req.id,
-      url: req.originalUrl,
-      method: req.method,
-      userId: req.user?.id,
-      payload: {
-        requestedDocumentId: req.params.id,
-        requesterUserId: req.user?.id,
-        requesterIp: req.ip,
-      },
-    });
     logWithContext('error', 'Document not found', context, {
-      ip: req.ip,
-      requestParams: req.params.id,
-      requestBody: { userId: req.user?.id },
+      request: {
+        ip: req.ip,
+        userId: req.user?.id,
+        params: req.params,
+        body: req.body,
+      },
+      response: {
+        statusCode: 404,
+        message: 'Document not found'
+      },
     });
     throw new AppError('Document not found', 404);
   }
 
   const url = s3Service.getPresignedUrl(doc.s3Key);
   logWithContext('info', 'Download URL', context, {
-    ip: req.ip,
-    requestParams: req.params.id,
-    requestBody: { downloadUrl: url },
+    request: {
+      ip: req.ip,
+      userId: req.user?.id,
+      params: req.params,
+      body: req.body,
+    },
+    response: {
+      statusCode: 200,
+      message: 'File Download URL',
+      downloadUrl: url
+    },
   });
   sendResponse({
     res,
@@ -111,9 +130,16 @@ export const deleteFile = async (
   const doc = await Document.findById(req.params.id);
   if (!doc || doc.ownerId.toString() !== req.user!.id) {
     logWithContext('error', 'Document not found', context, {
-      ip: req.ip,
-      requestParams: req.params.id,
-      requestBody: { doc, userId: req.user?.id },
+      request: {
+        ip: req.ip,
+        userId: req.user?.id,
+        params: req.params,
+        body: req.body,
+      },
+      response: {
+        statusCode: 404,
+        message: 'Document not found',
+      },
     });
     throw new AppError('Document not found', 404);
   }
@@ -121,9 +147,16 @@ export const deleteFile = async (
   await s3Service.deleteFromS3(doc.s3Key);
   await doc.deleteOne();
   logWithContext('info', 'File Deleted', context, {
-    ip: req.ip,
-    requestParams: req.params.id,
-    requestBody: { userId: req.user?.id },
+    request: {
+      ip: req.ip,
+      userId: req.user?.id,
+      params: req.params,
+      body: req.body,
+    },
+    response: {
+      statusCode: 200,
+      message: 'File Deleted',
+    },
   });
   sendResponse({
     res,
@@ -139,7 +172,17 @@ export const uploadMultiple = async (req: AuthRequest, res: Response) => {
 
   if (!files || files.length === 0) {
     logWithContext('error', 'No files uploaded', context, {
-      requestBody: { userId, files },
+      request: {
+        ip: req.ip,
+        userId: req.user?.id,
+        params: req.params,
+        body: req.body,
+        files
+      },
+      response: {
+        statusCode: 400,
+        message: 'No files uploaded',
+      }
     });
     throw new AppError('No files uploaded', 400);
   }
@@ -157,6 +200,7 @@ export const uploadMultiple = async (req: AuthRequest, res: Response) => {
       aesKey,
       SERVER_PUBLIC_KEY!,
     );
+    
     logWithContext('info', 'File details', context, {
       requestBody: {
         ownerId: userId,
@@ -183,6 +227,7 @@ export const uploadMultiple = async (req: AuthRequest, res: Response) => {
   logWithContext('info', 'Files uploaded successfully', context, {
     requestBody: { userId, documents: uploadedDocuments },
   });
+
   sendResponse({
     res,
     message: 'Files uploaded successfully',
