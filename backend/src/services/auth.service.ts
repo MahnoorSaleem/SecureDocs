@@ -1,25 +1,30 @@
 import config from '../config/config';
 import redis from '../config/redis';
 import User, { IUser } from '../models/user';
+import { logWithContext } from '../utils/contextualLogger';
 import * as jwtUtils from '../utils/jwt';
-import logger from '../utils/logger';
 
-export const registerUser = async (username: string, email: string, password: string): Promise<IUser> => {
+export const registerUser = async (username: string, email: string, password: string, context: any): Promise<IUser> => {
   const existing = await User.findOne({ email });
-  if (existing) throw new Error('Email already registered');
+  if (existing) {
+    logWithContext('error', 'Email already registered', context, {email});
+    throw new Error('Email already registered');
+  };
   const user = new User({ username, email, password });
   await user.save();
+  logWithContext('info', 'User registered', context, {
+    responseBody: user
+  });
   return user;
 };
 
 export const loginUser = async (email: string, password: string, context: any) => {
   const user = await User.findOne({ email });
   if (!user || !(await user.isValidPassword(password))) {
-    logger.error('Invalid email or password', {
-      ...context,
+    logWithContext('error', 'Invalid email or password', context, {
       email,
       userId: user?._id
-    })
+    });
     throw new Error('Invalid email or password');
   }
 
@@ -33,7 +38,9 @@ export const loginUser = async (email: string, password: string, context: any) =
     config.JWT_REFRESH_TOKEN_EXPIRY
   );
 
-  logger.info('user login successful', { ...context, accessToken, refreshToken, user: { id: user._id, email: user.email }})
+  logWithContext('info', 'user login successful', context, {
+    accessToken, refreshToken, user: { id: user._id, email: user.email }
+  });
 
   return { accessToken, refreshToken, user: { id: user._id, email: user.email } };
 };

@@ -10,8 +10,20 @@ import logger from '../utils/logger';
 import { logWithContext } from '../utils/contextualLogger';
 
 export const register = async (req: Request, res: Response) => {
+  const context = { ...req.logContext, apiName: '/register' };
+
   const { username, email, password } = req.body;
-  const user = await authService.registerUser(username, email, password);
+
+  logWithContext('info', 'register request', context, {
+    requestBody: {username, email},
+  });
+
+  const user = await authService.registerUser(username, email, password, context);
+
+  logWithContext('info', 'User registered successfully', context, {
+    responseBody: user,
+  });
+
   sendResponse({
     res,
     statusCode: 201,
@@ -90,15 +102,20 @@ export const logout = async (
   next: NextFunction,
 ) => {
   const userId = req.user?.id;
+  const context = { ...req.logContext, apiName: '/logout' };
+    logWithContext('info', 'logout request', context, {
+      userId,
+    });
+
   if (!userId) {
-    logger.warn('Unauthorized', {
-      requestId: req.id,
-      method: req.method,
-      url: req.originalUrl,
-      userId: req.user?.id,
+    logWithContext('warn', 'Unauthorized', context, {
+      userId,
     });
     return next(new AppError('Unauthorized', 401));
   }
   await redis.del(`refresh:${userId}`);
+  logWithContext('info', 'Logged out successfully', context, {
+    userId,
+  });
   sendResponse({ res, message: 'Logged out successfully' });
 };
