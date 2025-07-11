@@ -1,6 +1,13 @@
+'use client'
+
 import { FaCheck, FaLock } from "react-icons/fa";
+import { useRouter } from "next/navigation";
 
 export default function Common() {
+  const router = useRouter();
+  const handleSignUpClick = () => {
+    router.push("/signup");
+  };
   return (
     <div className="w-full max-w-screen-lg py-10 text-center flex flex-col justify-center px-4 space-y-10 items-center">
       <div className="bg-indigo-100 text-indigo-600 p-3 rounded-full mb-6">
@@ -24,7 +31,11 @@ export default function Common() {
           <span>Upload and encrypt your documents</span>
         </div>
       </div>
-      <button className="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700">
+      <button
+        type="button"
+        onClick={handleSignUpClick}
+        className="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700"
+      >
         Signup
       </button>
     </div>
