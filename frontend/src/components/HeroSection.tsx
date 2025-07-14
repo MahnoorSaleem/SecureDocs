@@ -3,7 +3,7 @@
 import { FaCheck, FaLock } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 
-export default function Common() {
+export default function Hero() {
   const router = useRouter();
   const handleSignUpClick = () => {
     router.push("/signup");
