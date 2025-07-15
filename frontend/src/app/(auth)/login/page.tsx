@@ -1,16 +1,32 @@
 "use client";
 
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { FaLock } from "react-icons/fa";
 
+const schema = z.object({
+ email: z.string().email({ message: "Invalid email address" }),
+ password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+type FormData = z.infer<typeof schema>;
+
 export default function LoginPage() {
-  const onSubmitLoginHandler = () => {
-    console.log("login test");
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormData>({ resolver: zodResolver(schema), mode: 'onTouched', });
+
+  const onSubmitLoginHandler = (data: FormData) => {
+    console.log("Login:", data);
   };
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
       <form
-        onSubmit={onSubmitLoginHandler}
+        onSubmit={handleSubmit(onSubmitLoginHandler)}
         className="bg-white shadow-md rounded-xl p-8 w-full max-w-md space-y-6 border border-gray-200"
       >
         <div className="text-center">
@@ -26,15 +42,25 @@ export default function LoginPage() {
           <label className="block text-sm font-medium mb-1">Email</label>
           <input
             type="email"
+            {...register("email")}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
           />
+          {errors.email && (
+            <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+          )}
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">Password</label>
           <input
             type="password"
+            {...register("password")}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
           />
+          {errors.password && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.password.message}
+            </p>
+          )}
         </div>
         <button
           type="submit"

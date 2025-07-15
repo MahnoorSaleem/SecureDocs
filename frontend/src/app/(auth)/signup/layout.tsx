@@ -1,4 +1,5 @@
-import './globals.css'; // 🔥 VERY IMPORTANT to import this here
+// ✅ No 'use client' needed — stays server-safe
+
 import { Geist, Geist_Mono } from "next/font/google";
 
 const geistSans = Geist({
@@ -11,13 +12,11 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-
 export const metadata = {
-  title: 'SecureDocs',
-  description: 'Secure file sharing and storage',
+  title: "Signup - SecureDocs",
 };
 
-export default function RootLayout({
+export default function SignupLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -25,9 +24,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-white text-gray-900`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen bg-gray-50 text-gray-800`}
       >
-        {children}
+        <div className="flex-1 flex flex-col justify-center items-center">
+          {children}
+        </div>
       </body>
     </html>
   );
