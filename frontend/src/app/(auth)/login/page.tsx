@@ -4,6 +4,9 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FaLock } from "react-icons/fa";
+import { loginUser } from "@/services/auth";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 const schema = z.object({
  email: z.string().email({ message: "Invalid email address" }),
@@ -13,14 +16,36 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export default function LoginPage() {
+  const router = useRouter();
+
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<FormData>({ resolver: zodResolver(schema), mode: 'onTouched', });
 
-  const onSubmitLoginHandler = (data: FormData) => {
-    console.log("Login:", data);
+  const onSubmitLoginHandler = async (data: FormData) => {
+    setApiError(null); // reset previous errors
+    setIsSubmitting(true);
+
+    try {
+      const { email, password } = data;
+      await loginUser({ email, password }); // your API call
+      router.push("dashboard");
+    } catch (error: unknown) {
+      
+      if (error instanceof Error) {
+        console.error(error);
+        setApiError("Login failed. Please try again.");
+      } else {
+        setApiError("Login failed. Please try again.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -62,11 +87,14 @@ export default function LoginPage() {
             </p>
           )}
         </div>
+        {apiError && (
+          <p className="text-red-600 text-center text-sm mb-2">{apiError}</p>
+        )}
         <button
           type="submit"
           className="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition"
         >
-          Login
+           {isSubmitting ? "Logging in..." : "Login"}
         </button>
         <p className="text-center text-sm text-gray-500 mt-4">
           Don&apos;t have an account?{" "}
